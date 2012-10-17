@@ -21,7 +21,6 @@ public class Logging {
     private static String debug = "-Debug";
     private static int debugLevel = 0;
     private static DebugLog debugLog = null;
-    private static Plugin plugin;
 
     protected Logging() {
         throw new AssertionError();
@@ -35,7 +34,7 @@ public class Logging {
     public static void init(final Plugin plugin) {
         name = plugin.getName();
         version = plugin.getDescription().getVersion();
-        Logging.plugin = plugin;
+        DebugLog.init(name, plugin.getDataFolder() + File.separator + "debug.log");
         setDebugLevel(0);
     }
 
@@ -65,8 +64,7 @@ public class Logging {
             throw new IllegalArgumentException("debugLevel must be between 0 and 3!");
         }
         if (debugLevel > 0) {
-            plugin.getDataFolder().mkdirs();
-            debugLog = new DebugLog(name, plugin.getDataFolder() + File.separator + "debug.log");
+            debugLog = DebugLog.getDebugLogger();
         } else {
             close();
         }

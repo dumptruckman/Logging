@@ -39,8 +39,30 @@ import java.util.logging.Logger;
  */
 public class DebugLog {
 
-    private final FileHandler fileHandler;
-    private final Logger log;
+    private static String loggerName = null;
+    private static String fileName = null;
+
+    public static void init(final String loggerName, final String fileName) {
+        if (DebugLog.loggerName == null) {
+            DebugLog.loggerName = loggerName;
+            DebugLog.fileName = fileName;
+        }
+    }
+
+    private static DebugLog instance = null;
+
+    public static DebugLog getDebugLogger() {
+        if (instance == null) {
+            if (loggerName == null) {
+                throw new IllegalStateException("DebugLog has not been initialized!");
+            }
+            instance = new DebugLog(loggerName, fileName);
+        }
+        return instance;
+    }
+
+    protected final FileHandler fileHandler;
+    protected final Logger log;
 
     /**
      * Creates a new debug logger.
@@ -48,7 +70,7 @@ public class DebugLog {
      * @param logger The name of the logger.
      * @param file   The file to log to.
      */
-    public DebugLog(final String logger, final String file) {
+    protected DebugLog(final String logger, final String file) {
         log = Logger.getLogger(logger);
         FileHandler fh = null;
         try {
@@ -115,10 +137,11 @@ public class DebugLog {
     }
 
     /**
-     * Closes this {@link com.dumptruckman.minecraft.pluginbase.util.DebugLog}.
+     * Closes this {@link DebugLog}.
      */
     public void close() {
         log.removeHandler(fileHandler);
         fileHandler.close();
+        instance = null;
     }
 }
