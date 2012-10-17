@@ -23,7 +23,7 @@ public class Logging {
     private static DebugLog debugLog = null;
     private static Plugin plugin;
 
-    private Logging() {
+    protected Logging() {
         throw new AssertionError();
     }
 
