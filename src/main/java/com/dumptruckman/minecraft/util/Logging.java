@@ -47,7 +47,7 @@ public class Logging {
             debugLog = null;
         }
     }
-    
+
     /**
      * Sets the debug logging level of this plugin.  Debug messages will print to the console and to a
      * debug log file when enabled.
@@ -130,6 +130,7 @@ public class Logging {
      * @param level       Log level
      * @param message     Log message
      * @param showVersion True adds version into message
+     * @param args        Arguments for the String.format() that is applied to the message.
      */
     public static void log(final Level level, String message, final boolean showVersion, final Object...args) {
         if (level == Level.FINE && Logging.debugLevel >= 1) {
@@ -165,6 +166,7 @@ public class Logging {
      * Info level logging.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void fine(final String message, final Object...args) {
         Logging.log(Level.FINE, message, false, args);
@@ -174,6 +176,7 @@ public class Logging {
      * Finer debug level logging.  Use for somewhat frequent messages.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void finer(final String message, final Object...args) {
         Logging.log(Level.FINER, message, false, args);
@@ -183,6 +186,7 @@ public class Logging {
      * Finest debug level logging.  Use for extremely frequent messages.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void finest(final String message, final Object...args) {
         Logging.log(Level.FINEST, message, false, args);
@@ -192,6 +196,7 @@ public class Logging {
      * Info level logging.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void info(final String message, final Object...args) {
         Logging.log(Level.INFO, message, false, args);
@@ -201,6 +206,7 @@ public class Logging {
      * Warning level logging.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void warning(final String message, final Object...args) {
         Logging.log(Level.WARNING, message, false, args);
@@ -210,6 +216,7 @@ public class Logging {
      * Severe level logging.
      *
      * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void severe(final String message, final Object...args) {
         Logging.log(Level.SEVERE, message, false, args);

@@ -42,6 +42,13 @@ public class DebugLog {
     private static String loggerName = null;
     private static String fileName = null;
 
+    /**
+     * Initializes the DebugLog the first time this is called with the information passed in.  The DebugLog must be
+     * initializes before use.
+     *
+     * @param loggerName The name of the logger to apply this DebugLog to.
+     * @param fileName The file name where a file copy of the log will be placed.
+     */
     public static void init(final String loggerName, final String fileName) {
         if (DebugLog.loggerName == null) {
             DebugLog.loggerName = loggerName;
@@ -51,6 +58,11 @@ public class DebugLog {
 
     private static DebugLog instance = null;
 
+    /**
+     * Retrieves the open instance of DebugLog if one has already open or will open one and return it if not.
+     *
+     * @return The static instance of DebugLog.
+     */
     public static DebugLog getDebugLogger() {
         if (instance == null) {
             if (loggerName == null) {
@@ -61,7 +73,13 @@ public class DebugLog {
         return instance;
     }
 
+    /**
+     * The FileHandler for file logging purposes.
+     */
     protected final FileHandler fileHandler;
+    /**
+     * The Logger associated with this DebugLog.
+     */
     protected final Logger log;
 
     /**
