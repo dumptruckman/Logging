@@ -13,35 +13,63 @@ import java.util.logging.Logger;
 /**
  * Static plugin logger.
  */
-public class Logging {
+public class Logging extends Logger {
 
-    private static Logger log = Logger.getLogger("Minecraft");
-    private static String name = "PluginBase";
-    private static String version = "v.???";
-    private static String debug = "-Debug";
-    private static int debugLevel = 0;
+    private static final String ORIGINAL_NAME = Logging.class.getSimpleName();
+    private static final String ORIGINAL_VERSION = "v.???";
+    private static final String ORIGINAL_DEBUG = "-Debug";
+    private static final int ORIGINAL_DEBUG_LEVEL = 0;
+
+    private static final Logging LOG = new Logging(Logger.getLogger("Minecraft"));
+
+    private static String name = ORIGINAL_NAME;
+    private static String version = ORIGINAL_VERSION;
+    private static String debug = ORIGINAL_DEBUG;
+    private static int debugLevel = ORIGINAL_DEBUG_LEVEL;
     private static DebugLog debugLog = null;
+    private static Plugin plugin = null;
 
-    protected Logging() {
-        throw new AssertionError();
+    protected Logging(final Logger logger) {
+        super(logger.getName(), logger.getResourceBundleName());
     }
 
     /**
-     * Prepares the log for use.  Debugging will default to disabled when initialized.
+     * Prepares the log for use.  Debugging will default to disabled when initialized.  This should be called early on
+     * in plugin initialization, such as during onLoad() or onEnable().  If this {@link Logging} class has already
+     * been initialized, it will first be shut down before reinitializing.
      *
      * @param plugin The plugin using this static logger.
      */
     public static void init(final Plugin plugin) {
+        if (Logging.plugin != null) {
+            shutdown();
+        }
         name = plugin.getName();
         version = plugin.getDescription().getVersion();
         DebugLog.init(name, plugin.getDataFolder() + File.separator + "debug.log");
         setDebugLevel(0);
+        Logging.plugin = plugin;
+    }
+
+    /**
+     * Returns the {@link Logging} class to it's original state, releasing the plugin that initialized it.  The
+     * {@link Logging} class can be reinitialized once it has been shut down.  This should be called when the plugin
+     * is disabled so that a static reference to the plugin is not kept in cases of server reloads.
+     */
+    public static void shutdown() {
+        closeDebugLog();
+        DebugLog.shutdown();
+        plugin = null;
+        name = ORIGINAL_NAME;
+        version = ORIGINAL_VERSION;
+        debug = ORIGINAL_DEBUG;
+        debugLevel = ORIGINAL_DEBUG_LEVEL;
     }
 
     /**
      * Closes the debug log if it is open.
      */
-    public static void close() {
+    public static void closeDebugLog() {
         if (debugLog != null) {
             debugLog.close();
             debugLog = null;
@@ -66,7 +94,7 @@ public class Logging {
         if (debugLevel > 0) {
             debugLog = DebugLog.getDebugLogger();
         } else {
-            close();
+            closeDebugLog();
         }
         Logging.debugLevel = debugLevel;
     }
@@ -116,35 +144,72 @@ public class Logging {
     }
 
     /**
-     * Returns the logger object.
+     * Returns the static Logger instance used by this class.
      *
-     * @return Logger object
+     * @return the static Logger instance used by this class.
      */
-    public static Logger getLogger() {
-        return log;
+    public static Logging getLogger() {
+        return LOG;
     }
 
     /**
-     * Custom log method.
+     * Custom log method.  Always logs to a single static logger.  Applies String.format() to the message if it is a
+     * non-debug level logging and to debug level logging IF debug logging is enabled.  Optionally appends version to
+     * prefix.
      *
-     * @param level       Log level
-     * @param message     Log message
-     * @param showVersion True adds version into message
+     * @param showVersion True adds version into message prefix.
+     * @param level       One of the message level identifiers, e.g. SEVERE.
+     * @param message     The string message.
      * @param args        Arguments for the String.format() that is applied to the message.
      */
-    public static void log(final Level level, String message, final boolean showVersion, final Object...args) {
-        if (level == Level.FINE && Logging.debugLevel >= 1) {
-            debug(Level.INFO, message, args);
-        } else if (level == Level.FINER && Logging.debugLevel >= 2) {
-            debug(Level.INFO, message, args);
-        } else if (level == Level.FINEST && Logging.debugLevel >= 3) {
+    public static void log(final boolean showVersion, final Level level, String message, final Object... args) {
+        if ((level == Level.FINE && Logging.debugLevel >= 1)
+                || (level == Level.FINER && Logging.debugLevel >= 2)
+                || (level == Level.FINEST && Logging.debugLevel >= 3)) {
             debug(Level.INFO, message, args);
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            message = String.format(message, args);
-            log.log(level, getPrefixedMessage(message, showVersion));
-            if (debugLog != null) {
-                debugLog.log(level, getPrefixedMessage(message, showVersion));
-            }
+            LOG._log(level, getPrefixedMessage(String.format(message, args), showVersion));
+        }
+    }
+
+    /**
+     * Custom log method.  Always logs to a single static logger.  Applies String.format() to the message if it is a
+     * non-debug level logging and to debug level logging IF debug logging is enabled.  Does not append version to
+     * prefix.
+     *
+     * @param level       One of the message level identifiers, e.g. SEVERE.
+     * @param message     The string message.
+     * @param args        Arguments for the String.format() that is applied to the message.
+     */
+    public static void logStatic(final Level level, String message, final Object... args) {
+        log(false, level, message, args);
+    }
+
+    private void _log(final Level level, final String message) {
+        super.log(level, message);
+        if (debugLog != null) {
+            debugLog.log(level, message);
+        }
+    }
+
+    /**
+     * Log a message, with no arguments.  Similar to {@link Logger#log(java.util.logging.Level, String)} with the
+     * exception that all logging is handled by a single static {@link Logging} instance.
+     *
+     * If the logger is currently enabled for the given message level then the given message is forwarded to all the
+     * registered output Handler objects.
+     *
+     * @param level Log level
+     * @param message Log message
+     */
+    @Override
+    public void log(final Level level, final String message) {
+        if ((level == Level.FINE && Logging.debugLevel >= 1)
+                || (level == Level.FINER && Logging.debugLevel >= 2)
+                || (level == Level.FINEST && Logging.debugLevel >= 3)) {
+            LOG._log(Level.INFO, getDebugString(message));
+        } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
+            LOG._log(level, message);
         }
     }
 
@@ -155,21 +220,17 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     private static void debug(final Level level, String message, final Object...args) {
-        message = String.format(message, args);
-        log.log(level, getDebugString(message));
-        if (debugLog != null) {
-            debugLog.log(level, getDebugString(message));
-        }
+        LOG._log(level, getDebugString(String.format(message, args)));
     }
 
     /**
-     * Info level logging.
+     * Fine debug level logging.  Use for infrequent messages.
      *
      * @param message Message to log.
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void fine(final String message, final Object...args) {
-        Logging.log(Level.FINE, message, false, args);
+        Logging.log(false, Level.FINE, message, args);
     }
 
     /**
@@ -179,7 +240,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void finer(final String message, final Object...args) {
-        Logging.log(Level.FINER, message, false, args);
+        Logging.log(false, Level.FINER, message, args);
     }
 
     /**
@@ -189,7 +250,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void finest(final String message, final Object...args) {
-        Logging.log(Level.FINEST, message, false, args);
+        Logging.log(false, Level.FINEST, message, args);
     }
 
     /**
@@ -199,7 +260,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void info(final String message, final Object...args) {
-        Logging.log(Level.INFO, message, false, args);
+        Logging.log(false, Level.INFO, message, args);
     }
 
     /**
@@ -209,7 +270,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void warning(final String message, final Object...args) {
-        Logging.log(Level.WARNING, message, false, args);
+        Logging.log(false, Level.WARNING, message, args);
     }
 
     /**
@@ -219,7 +280,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     public static void severe(final String message, final Object...args) {
-        Logging.log(Level.SEVERE, message, false, args);
+        Logging.log(false, Level.SEVERE, message, args);
     }
 
 }
