@@ -220,7 +220,7 @@ public class Logging {
      * @param message     The string message.
      * @param args        Arguments for the String.format() that is applied to the message.
      */
-    public static void logStatic(final Level level, String message, final Object... args) {
+    public static void log(final Level level, String message, final Object... args) {
         log(false, level, message, args);
     }
 
