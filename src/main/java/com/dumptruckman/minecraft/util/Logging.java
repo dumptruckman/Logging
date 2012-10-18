@@ -15,19 +15,19 @@ import java.util.logging.Logger;
  */
 public class Logging extends Logger {
 
-    private static final String ORIGINAL_NAME = Logging.class.getSimpleName();
-    private static final String ORIGINAL_VERSION = "v.???";
-    private static final String ORIGINAL_DEBUG = "-Debug";
-    private static final int ORIGINAL_DEBUG_LEVEL = 0;
+    static final String ORIGINAL_NAME = Logging.class.getSimpleName();
+    static final String ORIGINAL_VERSION = "v.???";
+    static final String ORIGINAL_DEBUG = "-Debug";
+    static final int ORIGINAL_DEBUG_LEVEL = 0;
 
-    private static final Logging LOG = new Logging(Logger.getLogger("Minecraft"));
+    static final Logging LOG = new Logging(Logger.getLogger("Minecraft"));
 
-    private static String name = ORIGINAL_NAME;
-    private static String version = ORIGINAL_VERSION;
-    private static String debug = ORIGINAL_DEBUG;
-    private static int debugLevel = ORIGINAL_DEBUG_LEVEL;
-    private static DebugLog debugLog = null;
-    private static Plugin plugin = null;
+    static String name = ORIGINAL_NAME;
+    static String version = ORIGINAL_VERSION;
+    static String debug = ORIGINAL_DEBUG;
+    static int debugLevel = ORIGINAL_DEBUG_LEVEL;
+    static DebugLog debugLog = null;
+    static Plugin plugin = null;
 
     protected Logging(final Logger logger) {
         super(logger.getName(), logger.getResourceBundleName());
@@ -185,7 +185,7 @@ public class Logging extends Logger {
         log(false, level, message, args);
     }
 
-    private void _log(final Level level, final String message) {
+    void _log(final Level level, final String message) {
         super.log(level, message);
         if (debugLog != null) {
             debugLog.log(level, message);
@@ -219,7 +219,7 @@ public class Logging extends Logger {
      * @param message The message to log.
      * @param args    Arguments for the String.format() that is applied to the message.
      */
-    private static void debug(final Level level, String message, final Object...args) {
+    static void debug(final Level level, String message, final Object...args) {
         LOG._log(level, getDebugString(String.format(message, args)));
     }
 
