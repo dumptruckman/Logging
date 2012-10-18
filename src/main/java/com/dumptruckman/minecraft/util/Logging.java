@@ -13,14 +13,14 @@ import java.util.logging.Logger;
 /**
  * Static plugin logger.
  */
-public class Logging extends Logger {
+public class Logging {
 
     static final String ORIGINAL_NAME = Logging.class.getSimpleName();
     static final String ORIGINAL_VERSION = "v.???";
     static final String ORIGINAL_DEBUG = "-Debug";
     static final int ORIGINAL_DEBUG_LEVEL = 0;
 
-    static final Logging LOG = new Logging(Logger.getLogger("Minecraft"));
+    static final InterceptedLogger LOG = new InterceptedLogger(Logger.getLogger("Minecraft"));
 
     static String name = ORIGINAL_NAME;
     static String version = ORIGINAL_VERSION;
@@ -29,8 +29,43 @@ public class Logging extends Logger {
     static DebugLog debugLog = null;
     static Plugin plugin = null;
 
-    protected Logging(final Logger logger) {
-        super(logger.getName(), logger.getResourceBundleName());
+    protected Logging() {
+        throw new AssertionError();
+    }
+
+    static class InterceptedLogger extends Logger {
+
+        InterceptedLogger(final Logger logger) {
+            super(logger.getName(), logger.getResourceBundleName());
+        }
+
+        void _log(final Level level, final String message) {
+            super.log(level, message);
+            if (debugLog != null) {
+                debugLog.log(level, message);
+            }
+        }
+
+        /**
+         * Log a message, with no arguments.  Similar to {@link Logger#log(java.util.logging.Level, String)} with the
+         * exception that all logging is handled by a single static {@link Logging} instance.
+         *
+         * If the logger is currently enabled for the given message level then the given message is forwarded to all the
+         * registered output Handler objects.
+         *
+         * @param level Log level
+         * @param message Log message
+         */
+        @Override
+        public void log(final Level level, final String message) {
+            if ((level == Level.FINE && Logging.debugLevel >= 1)
+                    || (level == Level.FINER && Logging.debugLevel >= 2)
+                    || (level == Level.FINEST && Logging.debugLevel >= 3)) {
+                LOG._log(Level.INFO, getDebugString(message));
+            } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
+                LOG._log(level, getPrefixedMessage(message, false));
+            }
+        }
     }
 
     /**
@@ -152,7 +187,7 @@ public class Logging extends Logger {
      *
      * @return the static Logger instance used by this class.
      */
-    public static Logging getLogger() {
+    public static Logger getLogger() {
         return LOG;
     }
 
@@ -187,34 +222,6 @@ public class Logging extends Logger {
      */
     public static void logStatic(final Level level, String message, final Object... args) {
         log(false, level, message, args);
-    }
-
-    void _log(final Level level, final String message) {
-        super.log(level, message);
-        if (debugLog != null) {
-            debugLog.log(level, message);
-        }
-    }
-
-    /**
-     * Log a message, with no arguments.  Similar to {@link Logger#log(java.util.logging.Level, String)} with the
-     * exception that all logging is handled by a single static {@link Logging} instance.
-     *
-     * If the logger is currently enabled for the given message level then the given message is forwarded to all the
-     * registered output Handler objects.
-     *
-     * @param level Log level
-     * @param message Log message
-     */
-    @Override
-    public void log(final Level level, final String message) {
-        if ((level == Level.FINE && Logging.debugLevel >= 1)
-                || (level == Level.FINER && Logging.debugLevel >= 2)
-                || (level == Level.FINEST && Logging.debugLevel >= 3)) {
-            LOG._log(Level.INFO, getDebugString(message));
-        } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            LOG._log(level, getPrefixedMessage(message, false));
-        }
     }
 
     /**
