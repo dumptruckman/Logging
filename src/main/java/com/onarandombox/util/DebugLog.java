@@ -43,7 +43,7 @@ public class DebugLog {
     private static String fileName = null;
 
     /**
-     * Initializes the DebugLog the first time this is called with the information passed in.  The DebugLog must be
+     * Initializes the {@link DebugLog} the first time this is called with the information passed in.  The DebugLog must be
      * initializes before use.
      *
      * @param loggerName The name of the logger to apply this DebugLog to.
@@ -54,6 +54,13 @@ public class DebugLog {
             DebugLog.loggerName = loggerName;
             DebugLog.fileName = fileName;
         }
+    }
+
+    /**
+     * Unitializes the {@link DebugLog} so that it may be reinitialized with new information.
+     */
+    public static void shutdown() {
+        loggerName = null;
     }
 
     private static DebugLog instance = null;
