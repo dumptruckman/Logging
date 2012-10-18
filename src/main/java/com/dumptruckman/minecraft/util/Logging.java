@@ -46,9 +46,13 @@ public class Logging extends Logger {
         }
         name = plugin.getName();
         version = plugin.getDescription().getVersion();
-        DebugLog.init(name, plugin.getDataFolder() + File.separator + "debug.log");
+        DebugLog.init(name, getDebugFileName(plugin));
         setDebugLevel(0);
         Logging.plugin = plugin;
+    }
+
+    static String getDebugFileName(final Plugin plugin) {
+        return plugin.getDataFolder() + File.separator + "debug.log";
     }
 
     /**
@@ -69,7 +73,7 @@ public class Logging extends Logger {
     /**
      * Closes the debug log if it is open.
      */
-    public static void closeDebugLog() {
+    static void closeDebugLog() {
         if (debugLog != null) {
             debugLog.close();
             debugLog = null;
@@ -209,7 +213,7 @@ public class Logging extends Logger {
                 || (level == Level.FINEST && Logging.debugLevel >= 3)) {
             LOG._log(Level.INFO, getDebugString(message));
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            LOG._log(level, message);
+            LOG._log(level, getPrefixedMessage(message, false));
         }
     }
 

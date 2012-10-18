@@ -57,10 +57,29 @@ public class DebugLog {
     }
 
     /**
+     * Returns the logger name set for this {@link DebugLog}.
+     *
+     * @return the logger name set for this {@link DebugLog}.
+     */
+    public static String getLoggerName() {
+        return loggerName;
+    }
+
+    /**
+     * Returns the file name set for this {@link DebugLog}.
+     *
+     * @return the file name set for this {@link DebugLog}.
+     */
+    public static String getFileName() {
+        return fileName;
+    }
+
+    /**
      * Unitializes the {@link DebugLog} so that it may be reinitialized with new information.
      */
     public static void shutdown() {
         loggerName = null;
+        fileName = null;
     }
 
     private static DebugLog instance = null;
@@ -78,6 +97,15 @@ public class DebugLog {
             instance = new DebugLog(loggerName, fileName);
         }
         return instance;
+    }
+
+    /**
+     * Returns whether their is an open instance of this {@link DebugLog}.
+     *
+     * @return true if there is an open instance of this {@link DebugLog}.
+     */
+    public static boolean isClosed() {
+        return instance == null;
     }
 
     /**
