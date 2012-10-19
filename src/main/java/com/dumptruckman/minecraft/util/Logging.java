@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 /**
@@ -38,31 +39,39 @@ public class Logging {
             super(logger.getName(), logger.getResourceBundleName());
         }
 
-        void _log(final Level level, final String message) {
-            super.log(level, message);
+        synchronized void _log(final Level level, final String message) {
+            final LogRecord record = new LogRecord(level, message);
+            record.setLoggerName(getName());
+            record.setResourceBundle(getResourceBundle());
+            _log(record);
+        }
+
+        synchronized void _log(final LogRecord record) {
+            super.log(record);
             if (debugLog != null) {
-                debugLog.log(level, message);
+                debugLog.log(record);
             }
         }
 
         /**
-         * Log a message, with no arguments.  Similar to {@link Logger#log(java.util.logging.Level, String)} with the
+         * Log a message, with no arguments.  Similar to {@link Logger#log(LogRecord)} with the
          * exception that all logging is handled by a single static {@link Logging} instance.
          *
-         * If the logger is currently enabled for the given message level then the given message is forwarded to all the
-         * registered output Handler objects.
-         *
-         * @param level Log level
-         * @param message Log message
+         * @param record the LogRecord.
          */
         @Override
-        public void log(final Level level, final String message) {
+        public synchronized void log(final LogRecord record) {
+            final Level level = record.getLevel();
+            final String message = record.getMessage();
             if ((level == Level.FINE && Logging.debugLevel >= 1)
                     || (level == Level.FINER && Logging.debugLevel >= 2)
                     || (level == Level.FINEST && Logging.debugLevel >= 3)) {
-                LOG._log(Level.INFO, getDebugString(message));
+                record.setLevel(Level.INFO);
+                record.setMessage(getDebugString(message));
+                LOG._log(record);
             } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-                LOG._log(level, getPrefixedMessage(message, false));
+                record.setMessage(getPrefixedMessage(message, false));
+                LOG._log(record);
             }
         }
     }
@@ -74,7 +83,7 @@ public class Logging {
      *
      * @param plugin The plugin using this static logger.
      */
-    public static void init(final Plugin plugin) {
+    public static synchronized void init(final Plugin plugin) {
         if (Logging.plugin != null) {
             shutdown();
         }
@@ -85,7 +94,7 @@ public class Logging {
         Logging.plugin = plugin;
     }
 
-    static String getDebugFileName(final Plugin plugin) {
+    static synchronized String getDebugFileName(final Plugin plugin) {
         return plugin.getDataFolder() + File.separator + "debug.log";
     }
 
@@ -94,7 +103,7 @@ public class Logging {
      * {@link Logging} class can be reinitialized once it has been shut down.  This should be called when the plugin
      * is disabled so that a static reference to the plugin is not kept in cases of server reloads.
      */
-    public static void shutdown() {
+    public synchronized static void shutdown() {
         closeDebugLog();
         DebugLog.shutdown();
         plugin = null;
@@ -107,7 +116,7 @@ public class Logging {
     /**
      * Closes the debug log if it is open.
      */
-    static void closeDebugLog() {
+    static synchronized void closeDebugLog() {
         if (debugLog != null) {
             debugLog.close();
             debugLog = null;
@@ -125,7 +134,7 @@ public class Logging {
      *
      * @param debugLevel 0 = off, 1-3 = debug level
      */
-    public static void setDebugLevel(final int debugLevel) {
+    public static synchronized void setDebugLevel(final int debugLevel) {
         if (debugLevel > 3 || debugLevel < 0) {
             throw new IllegalArgumentException("debugLevel must be between 0 and 3!");
         }
@@ -142,7 +151,7 @@ public class Logging {
      *
      * @return A value 0-3 indicating the debug logging level.
      */
-    public static int getDebugLevel() {
+    public static synchronized int getDebugLevel() {
         return debugLevel;
     }
 
@@ -153,7 +162,7 @@ public class Logging {
      * @param showVersion Whether to show version in log message
      * @return Modified message
      */
-    public static String getPrefixedMessage(final String message, final boolean showVersion) {
+    public static synchronized String getPrefixedMessage(final String message, final boolean showVersion) {
         final StringBuilder builder = new StringBuilder("[").append(name);
         if (showVersion) {
             builder.append(" ").append(version);
@@ -167,7 +176,7 @@ public class Logging {
      *
      * @param debugPrefix the new debug prefix to use.
      */
-    public static void setDebugPrefix(final String debugPrefix) {
+    public static synchronized void setDebugPrefix(final String debugPrefix) {
         Logging.debug = debugPrefix;
     }
 
@@ -177,7 +186,7 @@ public class Logging {
      * @param message     Log message
      * @return Modified message
      */
-    public static String getDebugString(final String message) {
+    public static synchronized String getDebugString(final String message) {
         return "[" + name + debug + "] " + message;
     }
 
@@ -200,7 +209,7 @@ public class Logging {
      * @param message     The string message.
      * @param args        Arguments for the String.format() that is applied to the message.
      */
-    public static void log(final boolean showVersion, final Level level, String message, final Object... args) {
+    public static synchronized void log(final boolean showVersion, final Level level, String message, final Object... args) {
         if ((level == Level.FINE && Logging.debugLevel >= 1)
                 || (level == Level.FINER && Logging.debugLevel >= 2)
                 || (level == Level.FINEST && Logging.debugLevel >= 3)) {

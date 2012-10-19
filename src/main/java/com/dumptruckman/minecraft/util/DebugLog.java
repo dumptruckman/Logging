@@ -49,7 +49,7 @@ public class DebugLog {
      * @param loggerName The name of the logger to apply this DebugLog to.
      * @param fileName The file name where a file copy of the log will be placed.
      */
-    public static void init(final String loggerName, final String fileName) {
+    public static synchronized void init(final String loggerName, final String fileName) {
         if (DebugLog.loggerName == null) {
             DebugLog.loggerName = loggerName;
             DebugLog.fileName = fileName;
@@ -61,7 +61,7 @@ public class DebugLog {
      *
      * @return the logger name set for this {@link DebugLog}.
      */
-    public static String getLoggerName() {
+    public static synchronized String getLoggerName() {
         return loggerName;
     }
 
@@ -70,14 +70,14 @@ public class DebugLog {
      *
      * @return the file name set for this {@link DebugLog}.
      */
-    public static String getFileName() {
+    public static synchronized String getFileName() {
         return fileName;
     }
 
     /**
      * Unitializes the {@link DebugLog} so that it may be reinitialized with new information.
      */
-    public static void shutdown() {
+    public static synchronized void shutdown() {
         loggerName = null;
         fileName = null;
     }
@@ -89,7 +89,7 @@ public class DebugLog {
      *
      * @return The static instance of DebugLog.
      */
-    public static DebugLog getDebugLogger() {
+    public static synchronized DebugLog getDebugLogger() {
         if (instance == null) {
             if (loggerName == null) {
                 throw new IllegalStateException("DebugLog has not been initialized!");
@@ -104,7 +104,7 @@ public class DebugLog {
      *
      * @return true if there is an open instance of this {@link DebugLog}.
      */
-    public static boolean isClosed() {
+    public static synchronized boolean isClosed() {
         return instance == null;
     }
 
@@ -151,14 +151,18 @@ public class DebugLog {
         }
     }
 
+    public void log(final LogRecord record) {
+        log.log(record);
+    }
+
     /**
      * Log a message at a certain level.
      *
      * @param level The log-{@link java.util.logging.Level}.
      * @param msg the message.
      */
-    public void log(Level level, String msg) {
-        log.log(level, msg);
+    public void log(final Level level, final String msg) {
+        log(new LogRecord(level, msg));
     }
 
     /**
@@ -192,7 +196,7 @@ public class DebugLog {
     /**
      * Closes this {@link DebugLog}.
      */
-    public void close() {
+    public synchronized void close() {
         log.removeHandler(fileHandler);
         fileHandler.close();
         instance = null;
