@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package com.dumptruckman.minecraft.util;
 
-import com.onarandombox.util.DebugLog;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;

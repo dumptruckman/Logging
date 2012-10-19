@@ -1,6 +1,5 @@
 package com.dumptruckman.minecraft.util;
 
-import com.onarandombox.util.DebugLog;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.junit.After;
