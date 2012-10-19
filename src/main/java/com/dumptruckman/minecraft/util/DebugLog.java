@@ -39,8 +39,12 @@ import java.util.logging.Logger;
  */
 public class DebugLog {
 
+    static final int ORIGINAL_DEBUG_LEVEL = 0;
+
     private static String loggerName = null;
     private static String fileName = null;
+
+    static volatile int debugLevel = ORIGINAL_DEBUG_LEVEL;
 
     /**
      * Initializes the {@link DebugLog} the first time this is called with the information passed in.  The DebugLog must be
@@ -54,6 +58,15 @@ public class DebugLog {
             DebugLog.loggerName = loggerName;
             DebugLog.fileName = fileName;
         }
+    }
+
+    /**
+     * Unitializes the {@link DebugLog} so that it may be reinitialized with new information.
+     */
+    public static synchronized void shutdown() {
+        loggerName = null;
+        fileName = null;
+        debugLevel = ORIGINAL_DEBUG_LEVEL;
     }
 
     /**
@@ -74,12 +87,12 @@ public class DebugLog {
         return fileName;
     }
 
-    /**
-     * Unitializes the {@link DebugLog} so that it may be reinitialized with new information.
-     */
-    public static synchronized void shutdown() {
-        loggerName = null;
-        fileName = null;
+    public static void setDebugLevel(final int debugLevel) {
+        DebugLog.debugLevel = debugLevel;
+    }
+
+    public static int getDebugLevel() {
+        return debugLevel;
     }
 
     private static DebugLog instance = null;

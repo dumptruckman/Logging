@@ -18,14 +18,12 @@ public class Logging {
     static final String ORIGINAL_NAME = Logging.class.getSimpleName();
     static final String ORIGINAL_VERSION = "v.???";
     static final String ORIGINAL_DEBUG = "-Debug";
-    static final int ORIGINAL_DEBUG_LEVEL = 0;
 
     static final InterceptedLogger LOG = new InterceptedLogger(Logger.getLogger("Minecraft"));
 
     static String name = ORIGINAL_NAME;
     static String version = ORIGINAL_VERSION;
     static String debug = ORIGINAL_DEBUG;
-    static int debugLevel = ORIGINAL_DEBUG_LEVEL;
     static DebugLog debugLog = null;
     static Plugin plugin = null;
 
@@ -35,8 +33,11 @@ public class Logging {
 
     static class InterceptedLogger extends Logger {
 
+        final Logger logger;
+
         InterceptedLogger(final Logger logger) {
             super(logger.getName(), logger.getResourceBundleName());
+            this.logger = logger;
         }
 
         synchronized void _log(final Level level, final String message) {
@@ -47,7 +48,7 @@ public class Logging {
         }
 
         synchronized void _log(final LogRecord record) {
-            super.log(record);
+            logger.log(record);
             if (debugLog != null) {
                 debugLog.log(record);
             }
@@ -63,9 +64,10 @@ public class Logging {
         public synchronized void log(final LogRecord record) {
             final Level level = record.getLevel();
             final String message = record.getMessage();
-            if ((level == Level.FINE && Logging.debugLevel >= 1)
-                    || (level == Level.FINER && Logging.debugLevel >= 2)
-                    || (level == Level.FINEST && Logging.debugLevel >= 3)) {
+            final int debugLevel = getDebugLevel();
+            if ((level == Level.FINE && debugLevel >= 1)
+                    || (level == Level.FINER && debugLevel >= 2)
+                    || (level == Level.FINEST && debugLevel >= 3)) {
                 record.setLevel(Level.INFO);
                 record.setMessage(getDebugString(message));
                 LOG._log(record);
@@ -110,7 +112,6 @@ public class Logging {
         name = ORIGINAL_NAME;
         version = ORIGINAL_VERSION;
         debug = ORIGINAL_DEBUG;
-        debugLevel = ORIGINAL_DEBUG_LEVEL;
     }
 
     /**
@@ -143,7 +144,7 @@ public class Logging {
         } else {
             closeDebugLog();
         }
-        Logging.debugLevel = debugLevel;
+        DebugLog.setDebugLevel(debugLevel);
     }
 
     /**
@@ -152,7 +153,7 @@ public class Logging {
      * @return A value 0-3 indicating the debug logging level.
      */
     public static synchronized int getDebugLevel() {
-        return debugLevel;
+        return DebugLog.getDebugLevel();
     }
 
     /**
@@ -210,9 +211,10 @@ public class Logging {
      * @param args        Arguments for the String.format() that is applied to the message.
      */
     public static synchronized void log(final boolean showVersion, final Level level, String message, final Object... args) {
-        if ((level == Level.FINE && Logging.debugLevel >= 1)
-                || (level == Level.FINER && Logging.debugLevel >= 2)
-                || (level == Level.FINEST && Logging.debugLevel >= 3)) {
+        final int debugLevel = getDebugLevel();
+        if ((level == Level.FINE && debugLevel >= 1)
+                || (level == Level.FINER && debugLevel >= 2)
+                || (level == Level.FINEST && debugLevel >= 3)) {
             debug(Level.INFO, message, args);
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
             LOG._log(level, getPrefixedMessage(String.format(message, args), showVersion));
