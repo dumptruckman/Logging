@@ -6,6 +6,7 @@ package com.dumptruckman.minecraft.util;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
+import java.util.IllegalFormatException;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -217,8 +218,17 @@ public class Logging {
                 || (level == Level.FINEST && debugLevel >= 3)) {
             debug(Level.INFO, message, args);
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            LOG._log(level, getPrefixedMessage(String.format(message, args), showVersion));
+            LOG._log(level, getPrefixedMessage(format(message, args), showVersion));
         }
+    }
+
+    private static String format(final String message, final Object[] args) {
+        try {
+            return String.format(message, args);
+        } catch (IllegalFormatException e) {
+            getLogger().fine("Illegal format in the following message:");
+        }
+        return message;
     }
 
     /**
@@ -241,7 +251,7 @@ public class Logging {
      * @param args    Arguments for the String.format() that is applied to the message.
      */
     static void debug(final Level level, String message, final Object...args) {
-        LOG._log(level, getDebugString(String.format(message, args)));
+        LOG._log(level, getDebugString(format(message, args)));
     }
 
     /**
