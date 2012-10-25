@@ -84,7 +84,7 @@ public class LoggingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSetDebugLevelTooLow() throws Exception {
-        Logging.setDebugLevel(-1);
+        Logging.setDebugLevel(-2);
     }
 
     @Test
