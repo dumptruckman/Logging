@@ -19,6 +19,7 @@ public class Logging {
     static final String ORIGINAL_NAME = Logging.class.getSimpleName();
     static final String ORIGINAL_VERSION = "v.???";
     static final String ORIGINAL_DEBUG = "-Debug";
+    static final boolean SHOW_CONFIG = true;
 
     static final InterceptedLogger LOG = new InterceptedLogger(Logger.getLogger("Minecraft"));
 
@@ -27,6 +28,7 @@ public class Logging {
     static String debug = ORIGINAL_DEBUG;
     static DebugLog debugLog = null;
     static Plugin plugin = null;
+    static volatile boolean showConfig = SHOW_CONFIG;
 
     protected Logging() {
         throw new AssertionError();
@@ -73,7 +75,7 @@ public class Logging {
                 record.setMessage(getDebugString(message));
                 LOG._log(record);
             } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-                if (level != Level.CONFIG || debugLevel >= 0) {
+                if (level != Level.CONFIG || showConfig) {
                     if (level == Level.CONFIG) {
                         record.setLevel(Level.INFO);
                     }
@@ -118,6 +120,7 @@ public class Logging {
         name = ORIGINAL_NAME;
         version = ORIGINAL_VERSION;
         debug = ORIGINAL_DEBUG;
+        showConfig = SHOW_CONFIG;
     }
 
     /**
@@ -142,8 +145,8 @@ public class Logging {
      * @param debugLevel 0 = off, 1-3 = debug level
      */
     public static synchronized void setDebugLevel(final int debugLevel) {
-        if (debugLevel > 3 || debugLevel < -1) {
-            throw new IllegalArgumentException("debugLevel must be between -1 and 3!");
+        if (debugLevel > 3 || debugLevel < 0) {
+            throw new IllegalArgumentException("debugLevel must be between 0 and 3!");
         }
         if (debugLevel > 0) {
             debugLog = DebugLog.getDebugLogger();
@@ -160,6 +163,24 @@ public class Logging {
      */
     public static synchronized int getDebugLevel() {
         return DebugLog.getDebugLevel();
+    }
+
+    /**
+     * Sets whether or not to display {@link Level#CONFIG} messages.
+     *
+     * @param showConfig true to enable, false to disable.
+     */
+    public static void setShowingConfig(final boolean showConfig) {
+        Logging.showConfig = showConfig;
+    }
+
+    /**
+     * Whether or not this Logging will show {@link Level#CONFIG} messages.
+     *
+     * @return true if this Logging will show {@link Level#CONFIG} messages.
+     */
+    public static boolean isShowingConfig() {
+        return showConfig;
     }
 
     /**
@@ -223,7 +244,7 @@ public class Logging {
                 || (level == Level.FINEST && debugLevel >= 3)) {
             debug(Level.INFO, message, args);
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            if (level != Level.CONFIG || debugLevel >= 0) {
+            if (level != Level.CONFIG || showConfig) {
                 if (level == Level.CONFIG) {
                     LOG._log(Level.INFO, getPrefixedMessage(format(message, args), showVersion));
                 } else {
