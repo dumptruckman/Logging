@@ -142,8 +142,8 @@ public class Logging {
      * @param debugLevel 0 = off, 1-3 = debug level
      */
     public static synchronized void setDebugLevel(final int debugLevel) {
-        if (debugLevel > 3 || debugLevel < 0) {
-            throw new IllegalArgumentException("debugLevel must be between 0 and 3!");
+        if (debugLevel > 3 || debugLevel < -1) {
+            throw new IllegalArgumentException("debugLevel must be between -1 and 3!");
         }
         if (debugLevel > 0) {
             debugLog = DebugLog.getDebugLogger();
