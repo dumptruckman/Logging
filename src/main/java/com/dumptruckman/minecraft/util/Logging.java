@@ -73,8 +73,13 @@ public class Logging {
                 record.setMessage(getDebugString(message));
                 LOG._log(record);
             } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-                record.setMessage(getPrefixedMessage(message, false));
-                LOG._log(record);
+                if (level != Level.CONFIG || debugLevel >= 0) {
+                    if (level == Level.CONFIG) {
+                        record.setLevel(Level.INFO);
+                    }
+                    record.setMessage(getPrefixedMessage(message, false));
+                    LOG._log(record);
+                }
             }
         }
     }
@@ -218,7 +223,13 @@ public class Logging {
                 || (level == Level.FINEST && debugLevel >= 3)) {
             debug(Level.INFO, message, args);
         } else if (level != Level.FINE && level != Level.FINER && level != Level.FINEST) {
-            LOG._log(level, getPrefixedMessage(format(message, args), showVersion));
+            if (level != Level.CONFIG || debugLevel >= 0) {
+                if (level == Level.CONFIG) {
+                    LOG._log(Level.INFO, getPrefixedMessage(format(message, args), showVersion));
+                } else {
+                    LOG._log(level, getPrefixedMessage(format(message, args), showVersion));
+                }
+            }
         }
     }
 
@@ -282,6 +293,17 @@ public class Logging {
      */
     public static void finest(final String message, final Object...args) {
         Logging.log(false, Level.FINEST, message, args);
+    }
+
+    /**
+     * Config level logging.  Use for messages that should be INFO level but have the option to be disabled
+     * via debug level -1.
+     *
+     * @param message Message to log.
+     * @param args    Arguments for the String.format() that is applied to the message.
+     */
+    public static void config(final String message, final Object...args) {
+        Logging.log(false, Level.CONFIG, message, args);
     }
 
     /**

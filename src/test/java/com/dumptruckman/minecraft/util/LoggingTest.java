@@ -15,7 +15,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.MissingFormatArgumentException;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -178,7 +177,6 @@ public class LoggingTest {
         public abstract void test(final LogRecord record);
     }
 
-    @Test(expected = MissingFormatArgumentException.class)
     public void testLog() throws Exception {
         Logging.setDebugLevel(3);
         TestHandler.tester = new RecordTester() {
@@ -196,6 +194,9 @@ public class LoggingTest {
         TestHandler.level = Level.SEVERE;
         Logging.log(false, Level.SEVERE, SIMPLE_MESSAGE);
         assertTrue(handler.hasMessage(handler.level, Logging.getPrefixedMessage(SIMPLE_MESSAGE, false)));
+        TestHandler.level = Level.INFO;
+        Logging.log(false, Level.CONFIG, SIMPLE_MESSAGE);
+        assertTrue(handler.hasMessage(handler.level, Logging.getPrefixedMessage(SIMPLE_MESSAGE, false)));
         handler.flush();
 
         TestHandler.tester = new RecordTester() {
@@ -212,6 +213,9 @@ public class LoggingTest {
         assertTrue(handler.hasMessage(handler.level, Logging.getPrefixedMessage(SIMPLE_MESSAGE, true)));
         TestHandler.level = Level.SEVERE;
         Logging.log(true, Level.SEVERE, SIMPLE_MESSAGE);
+        assertTrue(handler.hasMessage(handler.level, Logging.getPrefixedMessage(SIMPLE_MESSAGE, true)));
+        TestHandler.level = Level.INFO;
+        Logging.log(true, Level.CONFIG, SIMPLE_MESSAGE);
         assertTrue(handler.hasMessage(handler.level, Logging.getPrefixedMessage(SIMPLE_MESSAGE, true)));
         handler.flush();
 
