@@ -1,5 +1,22 @@
 package com.dumptruckman.minecraft.util;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
 import com.dumptruckman.minecraft.util.Logging.InterceptedLogger;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -11,18 +28,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.MockGateway;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-
-import static junit.framework.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PluginDescriptionFile.class)
@@ -43,7 +48,7 @@ public class LoggingTest {
         plugin = mock(Plugin.class);
         when(plugin.getName()).thenReturn("Logging-Test");
         final PluginDescriptionFile pdf = PowerMockito.spy(new PluginDescriptionFile(NAME, VERSION,
-                "com.dumptruckman.minecraft.util.LoggingTest"));
+                                                                                     "com.dumptruckman.minecraft.util.LoggingTest"));
         when(plugin.getDescription()).thenReturn(pdf);
         FileUtils.deleteFolder(new File("bin"));
         final File testFolder = new File("bin/test/server/plugins/Logging-Test");
